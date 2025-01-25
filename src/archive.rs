@@ -550,6 +550,10 @@ impl<'a> EntriesFields<'a> {
                 i64::try_from(amt).map_err(|_| other("seek position out of bounds"))?,
             );
             (&seekable_archive.inner).seek(pos)?;
+            seekable_archive
+                .inner
+                .pos
+                .set(seekable_archive.inner.pos.get() + amt);
         } else {
             let mut buf = [0u8; 4096 * 8];
             while amt > 0 {
@@ -598,7 +602,6 @@ impl<'a, R: ?Sized + Read> Read for &'a ArchiveInner<R> {
 impl<'a, R: ?Sized + Seek> Seek for &'a ArchiveInner<R> {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let pos = self.obj.borrow_mut().seek(pos)?;
-        self.pos.set(pos);
         Ok(pos)
     }
 }
